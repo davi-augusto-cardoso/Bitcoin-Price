@@ -7,16 +7,10 @@ from nostradamus import Nostradamus
 from view import View
 
 # TEMP IMPORTS
-import matplotlib.pyplot as plt
-
-from functools import partial
-
 from estimators_utils import *
-
-from skopt import gp_minimize
-from prophet import Prophet
+from spaces_utils import *
+# from prophet import Prophet
 # import statistics
-import pandas as pd
 
 # Organizar código - OK
 # Normalizar dados e implementar algoritimos com a normalização dos dados
@@ -37,16 +31,16 @@ bitcoin.processing_data('Close', 'Volatil')
 
 ndms = Nostradamus(bitcoin)
 
-train_test_data = bitcoin.split_train_test(amount_tests = 60, train_len = 45, X_y_len = (7, 1)
-                                        , columns = ("Close", "Mean HLC", "Date"))
+train_test_data = bitcoin.split_train_test(amount_tests = 30, train_len = 360, X_y_len = (45, 1)
+                                        , columns = ("Close", "Close", "Date"))
 
-estimators_and_results = ndms.train_model(best_estimators, train_test_data)
-
-# performance_i = ndms.performance_individual(estimators_and_results)
+# estimators_and_results = ndms.train_model(best_estimators, train_test_data)
+estimators_and_results = ndms.train_tunning_model(estimators_hp, train_test_data)
+performance_i = ndms.performance_individual(estimators_and_results)
 # performance_g = ndms.performance_general(performance_i, estimators_and_results)
-# print(estimators_and_results)
+print(estimators_and_results)
 view = View()
-view.ShowResults(estimators_and_results)
+# view.ShowResults(estimators_and_results)
 view.show_graphics(estimators_and_results)
 
 # print(result)
@@ -96,18 +90,7 @@ view.show_graphics(estimators_and_results)
 
 # print(data)
 # print(len(all_estimator))
-# from keras.models import Sequential
-# from keras.layers import Dense
 
-# classifier = Sequential()
-
-# classifier.add(Dense(units=31, activation= 'relu', input_dim=45))
-# classifier.add(Dense(units=31, activation= 'relu'))
-# classifier.add(Dense(units=17, activation='softmax'))
-
-# classifier.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"])
-
-# classifier.fit()
 
 # mean_performance = ndms.mean_performance_estimators(performance)
 

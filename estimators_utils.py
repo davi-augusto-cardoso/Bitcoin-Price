@@ -2,10 +2,10 @@ from ml_utils import *
 
 from skopt import space
 
+
 best_estimators = [ElasticNet(), BayesianRidge(), ARDRegression(),
                    HuberRegressor(), QuantileRegressor(solver="highs"), RANSACRegressor(random_state=1),
                    TheilSenRegressor(random_state=1), ]
-
 
 all_linears = [ElasticNet(), BayesianRidge(), 
                ARDRegression(), Lars(random_state=1), 
@@ -23,18 +23,6 @@ all_estimator = [SVR(), NuSVR(), LinearSVR(random_state=1),
                   RandomForestRegressor(random_state=1), AdaBoostRegressor(), GradientBoostingRegressor(random_state=1),
                   HuberRegressor(), QuantileRegressor(solver="highs"), RANSACRegressor(random_state=1), TheilSenRegressor(random_state=1), 
                   KNeighborsRegressor()]
-
-hp_baysianridge_names = [ "n_iter", "tol", "alpha_1", "alpha_2", 
-                         "lambda_1", "lambda_2",]
-
-hp_baysianridge = [
-    space.Integer(100, 3000, name="n_iter"),
-    space.Real(1e-6, 1e-1, name="tol"),
-    space.Real(1e-9, 1e-3, name="alpha_1"),
-    space.Real(1e-9, 1e-3, name="alpha_2"),
-    space.Real(1e-9, 1e-3, name="lambda_1"),
-    space.Real(1e-9, 1e-3, name="lambda_2"),]
-
 
 Estimators = {
     "Neural Networks" : list([dict({

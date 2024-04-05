@@ -2,6 +2,9 @@ from datetime import timedelta
 import statistics
 import pandas as pd
 from storage import Data_Model
+from functools import partial
+from skopt import dummy_minimize, gp_minimize
+
 from estimators_utils import *
 
 class Nostradamus:
@@ -9,10 +12,9 @@ class Nostradamus:
     def __init__(self, data_model):
         self.data_model = data_model
         # self.data_model.processing_data()
-    
-    # Treina 1 ou mais modelos com uma ou mais bases de dados 
+            
     # retorna Lista[Dicionário{Estimador, DataFrame]}] 
-    def train_model1(self, estimators, train_test_datas):
+    def train_tunning_model(self, estimators, train_test_datas):
         
         estimators_predictions = list() # Dicionário{Estimador, Lista[Dicionário{data, valor previsto, valor real}]}
 
@@ -20,12 +22,20 @@ class Nostradamus:
 
             results = list()
             
-            for X_train, X_test, y_train, y_test, pred_date in train_test_datas:
+            X_train = train_test_datas['X_train']
+            y_train = train_test_datas['y_train']
+            
+            model = self.tunning_model( estimator = estimator['Estimator'], params_names = estimator['Params_names'],  
+                            train_data = (X_train, y_train), space = estimator['Space'])
+
+            # Treinando modelo
+            # model = estimator.fit( X = X_train, y = y_train.ravel())
+            
+            for test_data in train_test_datas['Tests']:
                 
-                model = estimator.fit(  X = X_train.values.reshape(-1, 1),
-                                        y = y_train.values.ravel())
-                print(X_test.values.reshape(-1, 1))
-                prediction = model.predict(X_test.values.reshape(-1, 1))
+                X_test, y_test, date = test_data
+                
+                prediction = model.predict(X_test)
 
                 try:
                     target = y_test.tolist()[0]
@@ -38,24 +48,23 @@ class Nostradamus:
                     relative_error = abs(target-prediction[0])/target
                     
                 result = {
-                    'Model'             : model,
-                    'Date'              : pred_date,
+                    'Date'              : date[0],
                     'Real_value'        : target,
-                    'Predict'           : prediction[0],
-                    'Relative_error'    : relative_error
+                    'Predict'           : prediction,
+                    'Relative_error'    : relative_error[0]
                 }
                 
                 results.append(result)
             
             estimator_predictions = {
-                "Estimator" : estimator,
+                "Estimator" : estimator['Estimator'],
                 "Results"   : results
             }
             
             estimators_predictions.append(estimator_predictions)
             
         return estimators_predictions
-
+    
     # Treina e testa um grupo de algorítimos estiamdores
     # retorna Lista[Dicionário{Estimador, DataFrame]}] 
     def train_model(self, estimators, train_test_datas):
@@ -105,7 +114,6 @@ class Nostradamus:
             estimators_predictions.append(estimator_predictions)
             
         return estimators_predictions
-
 
     # Retorna statisticas das n predições (Média, desvio, erro relativo ...)
     # Performance individual dos estimadores
@@ -270,32 +278,39 @@ class Nostradamus:
         
         return pred_date, trade_expected, volatily_expected
         
+    def tunner(self, space, estimator, params_names, train_data):
+        X_train, y_train = train_data
         
-    # def tunning_models(self, params, params_names, estimator, train_test_data):
-        # X_train, X_test, y_train, y_test, pred_date = train_test_data
+        params = dict(zip(params_names, space))
+        model  = estimator(**params)
         
-        # params = dict(zip(params_names, params))
-        # model = estimator(**params)
+        model.fit( X = X_train, y = y_train)
         
-        # model.fit(X = X_train.values.reshape(-1, 1),
-        #           y = y_train.values.ravel())
+        score = model.score(X = X_train, y = y_train)
         
-        # score = model.score(X = X_train.values.reshape(-1, 1),
-        #                     y = y_train.values.ravel())
+        return -score
+    
+    
+    def tunning_model(self, estimator, params_names, train_data, space):
         
-        # # optimal_func = partial(
-        # # ndms.tunning_models,
-        # # params_names = hp_names_mlp,
-        # # estimator = MLPRegressor,
-        # # train_test_data=train_test_datas[0])
+        optimal_func = partial(
+            self.tunner,
+            estimator       = estimator,
+            params_names    = params_names,
+            train_data      = train_data)
 
-        # # model_parametrized = gp_minimize(optimal_func, 
-        # #                     dimensions = hp_mlp, 
-        # #                     n_random_starts=20,
-        # #                     n_calls=60, verbose=False)
+        best_params = dummy_minimize(optimal_func, 
+                                dimensions = space, 
+                                random_state = 20,
+                                n_calls=60, verbose=False)
 
-
-        # # params = dict(zip(hp_names_mlp, model_parametrized.x))
+        params = dict(zip(params_names, best_params.x))
         
-        # return -score
+        X_train, y_train = train_data
+        
+        estimator = estimator(**params)
+        
+        model_parametrized = estimator.fit(X_train, y_train)
+        
+        return model_parametrized
     
