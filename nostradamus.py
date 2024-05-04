@@ -14,7 +14,7 @@ class Nostradamus:
         # self.data_model.processing_data()
             
     # retorna Lista[Dicionário{Estimador, DataFrame]}] 
-    def train_tunning_model(self, estimators, train_test_datas):
+    def train_tunning_model(self, estimators, train_test_datas, scaler):
         
         estimators_predictions = list() # Dicionário{Estimador, Lista[Dicionário{data, valor previsto, valor real}]}
 
@@ -36,14 +36,16 @@ class Nostradamus:
                 X_test, y_test, date = test_data
                 
                 prediction = model.predict(X_test)
-
+                
+                prediction = scaler.inverse_transform(prediction.reshape(-1, 1))[0]
+                
                 try:
-                    target = y_test.tolist()[0]
+                    target = scaler.inverse_transform(y_test.tolist())[0]
                 except:
                     target = 1
                     
-                if prediction[0] <= 1:
-                    relative_error = prediction[0] + target
+                if prediction <= 1:
+                    relative_error = prediction + target
                 else:
                     relative_error = abs(target-prediction[0])/target
                     
@@ -51,7 +53,9 @@ class Nostradamus:
                     'Date'              : date[0],
                     'Real_value'        : target,
                     'Predict'           : prediction,
-                    'Relative_error'    : relative_error[0]
+                    'Relative_error'    : relative_error[0],
+                    'Yesterday_val'     : scaler.inverse_transform(X_test.reshape(-1, 1))[-1][-1],
+                    'Best_model'        : model
                 }
                 
                 results.append(result)
@@ -290,7 +294,6 @@ class Nostradamus:
         
         return -score
     
-    
     def tunning_model(self, estimator, params_names, train_data, space):
         
         optimal_func = partial(
@@ -314,3 +317,34 @@ class Nostradamus:
         
         return model_parametrized
     
+    # Mensurando a lucratividade do modelo
+    def profit_model(self, estimators_predictions, value=100):
+        
+        for estimator in estimators_predictions:
+            
+            print('Estimator: ', estimator['Estimator'])
+            wallet = value
+            bitcoin = 0
+            
+            for result in estimator['Results']:
+                
+                if(result['Yesterday_val'] - result['Predict'] > 0):
+                    
+                    if(wallet > bitcoin):
+                        # Compra
+                        bitcoin = wallet
+                        wallet  = 0
+                    
+                    gain = (result['Real_value'] - result['Yesterday_val'])/result['Yesterday_val']
+                    
+                    bitcoin += (gain * bitcoin)
+                else:
+                    if(bitcoin > wallet):
+                        # Venda
+                        wallet  = bitcoin
+                        bitcoin = 0
+                
+            if(bitcoin > wallet):
+                wallet = bitcoin
+            
+            print('Profit: ', wallet)

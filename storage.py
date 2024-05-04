@@ -17,12 +17,12 @@ class Data_Model:
         self.data_frame[name_column] = self.data_frame[column].pct_change()
         self.data_frame = self.data_frame.iloc[1:]
         # self.data_frame = self.data_frame.drop(["Stock Splits", "Dividends"], axis=1)
-        self.data_frame['Mean HL'] = (self.data_frame['High'] + self.data_frame['Low']) / 2
-        self.data_frame['Mean HLC'] = (self.data_frame['High'] + self.data_frame['Low'] + self.data_frame['Close']) / 3
+        # self.data_frame['Mean HL'] = (self.data_frame['High'] + self.data_frame['Low']) / 2
+        # self.data_frame['Mean HLC'] = (self.data_frame['High'] + self.data_frame['Low'] + self.data_frame['Close']) / 3
         print(self.data_frame)
     
-    def filter_data(self, column):
-        scaler = StandardScaler()
+    
+    def filter_data(self, column, scaler = StandardScaler()):
         self.data_frame[column] = scaler.fit_transform(self.data_frame[column].values.reshape(-1, 1))
         print(self.data_frame)
         
@@ -32,8 +32,8 @@ class Data_Model:
     # retorna uma tupla(X_train, y_train)
     def split_data(self, columns = ("Close", "Close", "Date"), offset = 20, total_len = 360, X_y_len = (45, 1)):
         
-        X_column, y_column, date_column    = columns
-        X_len, y_len                = X_y_len # X_len Periodo para predição (in/entrada), y_len peiodo previsto (out/resultado/saída)
+        X_column, y_column, date_column     = columns
+        X_len, y_len                        = X_y_len # X_len Periodo para predição (in/entrada), y_len peiodo previsto (out/resultado/saída)
         
         end     = self.data_frame.last_valid_index() - offset
         start   = end - total_len

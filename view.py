@@ -6,7 +6,18 @@ class View:
     
     def __init__(self):
         pass
-        
+    
+    
+    def ShowResultsIndividual(self, performances):
+        # Mostra os resultados individuais de cada estimador
+        for performance in performances:
+            print(f"Estimator: {performance['Estimator']}")
+            print(f"Max Relative Error: {performance['Max_relative_error']:.4%}")
+            print(f"Mean Relative Error: {performance['Mean_relative_error']:.4%}")
+            print(f"Deviation Relative Error: {performance['Deviation_relative_error']:.4%}")
+            print(f"Quantiles: {performance['Quantiles']}")
+            print("-" * 40)  # Linha separadora
+    
     def ShowResults(self, results):
         # Mostra os resultados de todos os modelos treinados
         for estimator_result in results:

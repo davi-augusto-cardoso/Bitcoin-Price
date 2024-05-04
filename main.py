@@ -21,27 +21,33 @@ from spaces_utils import *
 # Implementar tunning de parametros
 # Criar classificador que esolhe melhor modelo para calcular o dia seguinte
 
-bitcoin = Data_Model(interval="1d", period="2y")
+bitcoin = Data_Model(symbol_1="BTC-USD", interval="1d", period="4y")
 
 bitcoin.processing_data('Close', 'Volatil')
-# scaler = bitcoin.filter_data('Close')
-# scaler = bitcoin.filter_data('Mean HLC')
+scaler = bitcoin.filter_data('Volume')
+scaler = bitcoin.filter_data('Close')
 # scaler1 = bitcoin.filter_data('Low')
 # scaler = bitcoin.filter_data('Close')
 
 ndms = Nostradamus(bitcoin)
 
-train_test_data = bitcoin.split_train_test(amount_tests = 30, train_len = 360, X_y_len = (45, 1)
+train_test_data = bitcoin.split_train_test(amount_tests = 90, train_len = 120, X_y_len = (30, 1)
                                         , columns = ("Close", "Close", "Date"))
 
 # estimators_and_results = ndms.train_model(best_estimators, train_test_data)
-estimators_and_results = ndms.train_tunning_model(estimators_hp, train_test_data)
+estimators_and_results = ndms.train_tunning_model(estimators_hp, train_test_data, scaler)
+
+ndms.profit_model(estimators_and_results)
+
 performance_i = ndms.performance_individual(estimators_and_results)
 # performance_g = ndms.performance_general(performance_i, estimators_and_results)
-print(estimators_and_results)
+
+# for perf in performance_i:
+#     print("Estimador:Mean:DesvPad ", perf['Estimator']," : ", perf['Mean_relative_error'], " : ", perf['Deviation_relative_error'])
+
 view = View()
 # view.ShowResults(estimators_and_results)
-view.show_graphics(estimators_and_results)
+view.ShowResultsIndividual(performance_i)
 
 # print(result)
 

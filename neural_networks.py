@@ -8,23 +8,14 @@ from functools import partial
 
 from ml_utils import *
 
+x = 2
 
-class Par:
-    
-    def __init__(self):
-        pass
-    
-    def pimba(self, a, b):
-        a = a + b
-        return a
-    
+y = x
 
-par = Par()
+y = 0 
 
-p = partial(par.pimba, b=10)
-a = p(2)
+print(x ," ", y)
 
-print(a)
 
 # def monte_carlo(data, data_vol):
 #     mean = st.mean(data)
