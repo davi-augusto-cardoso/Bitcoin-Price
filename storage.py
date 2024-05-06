@@ -16,11 +16,6 @@ class Data_Model:
     def processing_data(self, column, name_column):
         self.data_frame[name_column] = self.data_frame[column].pct_change()
         self.data_frame = self.data_frame.iloc[1:]
-        # self.data_frame = self.data_frame.drop(["Stock Splits", "Dividends"], axis=1)
-        # self.data_frame['Mean HL'] = (self.data_frame['High'] + self.data_frame['Low']) / 2
-        # self.data_frame['Mean HLC'] = (self.data_frame['High'] + self.data_frame['Low'] + self.data_frame['Close']) / 3
-        print(self.data_frame)
-    
     
     def filter_data(self, column, scaler = StandardScaler()):
         self.data_frame[column] = scaler.fit_transform(self.data_frame[column].values.reshape(-1, 1))

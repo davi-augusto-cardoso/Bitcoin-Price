@@ -18,6 +18,7 @@ class Nostradamus:
         
         estimators_predictions = list() # Dicionário{Estimador, Lista[Dicionário{data, valor previsto, valor real}]}
 
+        # Treinando estimador por estimador com o período temporal escolhido
         for estimator in estimators:
 
             results = list()
@@ -25,11 +26,9 @@ class Nostradamus:
             X_train = train_test_datas['X_train']
             y_train = train_test_datas['y_train']
             
+            # Escolhendo melhores parametros para o período temporal
             model = self.tunning_model( estimator = estimator['Estimator'], params_names = estimator['Params_names'],  
                             train_data = (X_train, y_train), space = estimator['Space'])
-
-            # Treinando modelo
-            # model = estimator.fit( X = X_train, y = y_train.ravel())
             
             for test_data in train_test_datas['Tests']:
                 
@@ -263,24 +262,6 @@ class Nostradamus:
         data_frame = pd.DataFrame(data)
 
         return data_frame
-
-    def take_decision(self, prediction, train_test_data, trade=100, buy_tax = 0.015, sell_tax = 0.015):
-        
-        X_train, X_test, y_train, y_test, pred_date = train_test_data[0]
-        
-        trade_expected = trade
-        
-        trade_expected -= trade * buy_tax
-        
-        last_day_value = y_train.iloc[y_train.shape[0]-1]
-
-        volatily_expected = (last_day_value - prediction[0]['Results'][0]['Predict'])/last_day_value
-        
-        trade_expected += trade_expected * volatily_expected
-        
-        trade_expected -= trade_expected * sell_tax
-        
-        return pred_date, trade_expected, volatily_expected
         
     def tunner(self, space, estimator, params_names, train_data):
         X_train, y_train = train_data
@@ -347,4 +328,4 @@ class Nostradamus:
             if(bitcoin > wallet):
                 wallet = bitcoin
             
-            print('Profit: ', wallet)
+            print('Profit: ', wallet[0], wallet[0]-100, "%")
